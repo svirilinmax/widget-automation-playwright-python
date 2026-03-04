@@ -1,6 +1,8 @@
-import pytest
-from pages.constructor_page import ConstructorPage
 import logging
+
+import pytest
+
+from pages.constructor_page import ConstructorPage
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,7 @@ class TestErrorHandling:
         def mock_goto_with_timeout(*args, **kwargs):
             """Симулируем таймаут"""
             import time
+
             time.sleep(0.1)  # Небольшая задержка
             raise Exception("Timeout exceeded")
 

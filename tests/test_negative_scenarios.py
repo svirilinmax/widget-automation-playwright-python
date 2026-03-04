@@ -1,5 +1,6 @@
-from pages.constructor_page import ConstructorPage
 import logging
+
+from pages.constructor_page import ConstructorPage
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,8 @@
-import pytest
-from playwright.sync_api import sync_playwright
 import os
 from datetime import datetime
+
+import pytest
+from playwright.sync_api import sync_playwright
 
 
 @pytest.fixture(scope="function")
@@ -9,10 +10,7 @@ def page():
     """Фикстура для создания страницы перед каждым тестом"""
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            viewport={'width': 1280, 'height': 720},
-            locale='ru-RU'
-        )
+        context = browser.new_context(viewport={"width": 1280, "height": 720}, locale="ru-RU")
         page = context.new_page()
 
         # Добавляем обработчик ошибок с подробной информацией
@@ -22,7 +20,7 @@ def page():
         yield page
 
         # Делаем скриншот при падении теста
-        if hasattr(page, '_test_failed') and page._test_failed:
+        if hasattr(page, "_test_failed") and page._test_failed:
             # Создаем папку для скриншотов если её нет
             screenshots_dir = "test_screenshots"
             if not os.path.exists(screenshots_dir):

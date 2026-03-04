@@ -1,4 +1,4 @@
-from .test_ui_constructor import TestConstructor
 from .test_negative_scenarios import TestNegativeScenarios
+from .test_ui_constructor import TestConstructor
 
-__all__ = ['TestConstructor', 'TestNegativeScenarios']
+__all__ = ["TestConstructor", "TestNegativeScenarios"]

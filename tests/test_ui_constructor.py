@@ -1,7 +1,9 @@
+import logging
+
 import pytest
+
 from pages.constructor_page import ConstructorPage
 from utils.data_provider import DIMENSIONS_TEST_CASES, EDGE_DIMENSIONS
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +49,9 @@ class TestConstructor:
             constructor.set_dimensions(case["input"], "600")
             actual_value = constructor.get_width_value()
 
-            assert actual_value == case["expected"], \
-                f"Для ввода '{case['input']}' ожидали '{case['expected']}', получили '{actual_value}'"
+            assert (
+                actual_value == case["expected"]
+            ), f"Для ввода '{case['input']}' ожидали '{case['expected']}', получили '{actual_value}'"
 
         logger.info("Все тесты валидации пройдены успешно")
 

@@ -1,5 +1,6 @@
-from playwright.sync_api import Page
 import logging
+
+from playwright.sync_api import Page
 
 logger = logging.getLogger(__name__)
 
@@ -100,11 +101,11 @@ class ConstructorPage:
 
         self.page.wait_for_timeout(1000)
 
-        #Ищем видимый элемент внутри дропдауна для клика
+        # Ищем видимый элемент внутри дропдауна для клика
         try:
             box = dropdown.bounding_box()
             if box:
-                self.page.mouse.click(box['x'] + 50, box['y'] + box['height'] + 15)
+                self.page.mouse.click(box["x"] + 50, box["y"] + box["height"] + 15)
                 self.page.wait_for_timeout(500)
                 logger.info("Клик по области дропдауна выполнен")
 
@@ -150,7 +151,7 @@ class ConstructorPage:
         button.click()
 
         try:
-            self.page.wait_for_selector(f"{self.preview_container}:has(*)", timeout=10000)
+            self.page.wait_for_selector(f"{self.preview_container}:has(*)", timeout=10000)  # noqa E231
             logger.info("Превью сгенерировано успешно")
         except Exception as e:
             logger.warning(f"Превью не появилось: {e}")
@@ -181,7 +182,7 @@ class ConstructorPage:
                 for i in range(elements.count()):
                     if elements.nth(i).is_visible():
                         return True
-            except:
+            except Exception:
                 continue
         return False
 
@@ -218,6 +219,6 @@ class ConstructorPage:
             if counter.is_visible():
                 count_text = counter.text_content()
                 return count_text != "0" and count_text is not None
-        except:
+        except Exception:
             pass
         return False

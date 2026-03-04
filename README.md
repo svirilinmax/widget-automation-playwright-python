@@ -269,7 +269,7 @@ def test_page_loads_successfully(self, page):
     """Проверка загрузки страницы"""
     constructor = ConstructorPage(page)
     constructor.navigate()
-    
+
     assert "eventswidget" in page.url
     assert constructor.is_page_loaded()
 ```
@@ -294,9 +294,9 @@ def test_clear_buttons_work(self, page):
     """Тест с обработкой особенностей UI"""
     constructor = ConstructorPage(page)
     constructor.navigate()
-    
+
     constructor.select_all_countries()
-    
+
     countries_clear_visible = page.locator(constructor.countries_clear).is_visible()
     if not countries_clear_visible:
         logger.info("Кнопка не видима - особенность UI")
@@ -316,7 +316,7 @@ def test_clear_buttons_work(self, page):
 ```bash
     # Временно отключить headless режим
     # В файле conftest.py измените headless=True на headless=False
-    
+
     # Запуск с паузой после каждого действия
     pytest --headed --slowmo=1000
 ```
@@ -334,7 +334,7 @@ failure_test_clear_buttons_work_20240304_123457.png
 
 ### Проблема: Тест падает с TimeoutError
 **Причина**: Элемент не появляется на странице вовремя
-**Решение**: 
+**Решение**:
 - Увеличить таймаут в `set_default_timeout`
 - Проверить селектор элемента
 - Добавить `wait_for_timeout` перед взаимодействием
