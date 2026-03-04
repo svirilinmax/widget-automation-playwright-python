@@ -230,3 +230,10 @@ logs/
 # Системные
 .DS_Store
 Thumbs.db
+
+# Результаты coverage
+*.lcov
+.noserc
+
+# Screenshots
+test_screenshots/

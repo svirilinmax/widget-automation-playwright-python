@@ -1,5 +1,7 @@
 import pytest
 from playwright.sync_api import sync_playwright
+import os
+from datetime import datetime
 
 
 @pytest.fixture(scope="function")
@@ -21,7 +23,19 @@ def page():
 
         # Делаем скриншот при падении теста
         if hasattr(page, '_test_failed') and page._test_failed:
-            page.screenshot(path=f"failure_{page._test_name}.png")
+            # Создаем папку для скриншотов если её нет
+            screenshots_dir = "test_screenshots"
+            if not os.path.exists(screenshots_dir):
+                os.makedirs(screenshots_dir)
+
+            # Генерируем имя файла с датой и временем
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            screenshot_name = f"failure_{page._test_name}_{timestamp}.png"
+            screenshot_path = os.path.join(screenshots_dir, screenshot_name)
+
+            # Сохраняем скриншот
+            page.screenshot(path=screenshot_path)
+            print(f" Screenshot saved: {screenshot_path}")
 
         context.close()
         browser.close()

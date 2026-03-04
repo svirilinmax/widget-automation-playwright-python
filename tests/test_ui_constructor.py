@@ -97,3 +97,82 @@ class TestConstructor:
         else:
             constructor.clear_countries()
             assert not constructor.are_countries_selected(), "Страны должны быть не выбраны"
+
+    def test_clear_theme_when_button_not_visible(self, page):
+        """Проверка очистки темы когда кнопка не видна"""
+        constructor = ConstructorPage(page)
+        constructor.navigate()
+
+        # Выбираем тему
+        constructor.select_theme("Affiliate")
+
+        # Временно делаем кнопку невидимой
+        original_is_visible = page.locator(constructor.theme_clear).is_visible
+        try:
+            page.locator(constructor.theme_clear).is_visible = lambda: False
+            constructor.clear_theme()  # Должно отработать без ошибок
+        finally:
+            page.locator(constructor.theme_clear).is_visible = original_is_visible
+
+    def test_clear_countries_when_button_not_visible(self, page):
+        """Проверка очистки стран когда кнопка не видна"""
+        constructor = ConstructorPage(page)
+        constructor.navigate()
+
+        constructor.select_all_countries()
+
+        # Временно делаем кнопку невидимой
+        original_is_visible = page.locator(constructor.countries_clear).is_visible
+        try:
+            page.locator(constructor.countries_clear).is_visible = lambda: False
+            constructor.clear_countries()  # Должно отработать без ошибок
+        finally:
+            page.locator(constructor.countries_clear).is_visible = original_is_visible
+
+    def test_has_error_messages_detection(self, page):
+        """Проверка обнаружения сообщений об ошибках"""
+        constructor = ConstructorPage(page)
+        constructor.navigate()
+
+        # Изначально ошибок нет
+        assert not constructor.has_error_messages()
+
+        # Добавляем элемент с ошибкой через JavaScript
+        page.evaluate("""
+            const div = document.createElement('div');
+            div.className = 'error-message';
+            div.textContent = 'Test error';
+            div.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 9999;';
+            document.body.appendChild(div);
+        """)
+
+        # Должны обнаружить ошибку
+        assert constructor.has_error_messages()
+
+    def test_is_page_loaded_without_button_check(self, page):
+        """Проверка is_page_loaded без проверки кнопки"""
+        constructor = ConstructorPage(page)
+        constructor.navigate()
+
+        assert constructor.is_page_loaded(check_button=False)
+
+    def test_is_page_loaded_when_form_missing(self, page):
+        """Проверка is_page_loaded когда формы нет"""
+        constructor = ConstructorPage(page)
+
+        # Переходим на другую страницу
+        page.goto("https://example.com")
+
+        assert not constructor.is_page_loaded()
+
+    def test_get_width_value_empty_field(self, page):
+        """Проверка получения значения из пустого поля"""
+        constructor = ConstructorPage(page)
+        constructor.navigate()
+
+        # Очищаем поле
+        page.locator(constructor.width_input).clear()
+
+        # Проверяем что метод не падает
+        value = constructor.get_width_value()
+        assert value is not None
