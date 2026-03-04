@@ -394,11 +394,11 @@ failure_test_clear_buttons_work_20240304_123457.png
 
 ## Лицензия и авторство
 
-**Лицензия**: MIT
-**Разработчик**: Максим Свирилин
-**Репозиторий**: [github.com/svirilinmax/widget-automation-playwright-python](https://github.com/svirilinmax/widget-automation-playwright-python)
-**Вопросы**: mak.svirilin@gmail.com
-**Telegram**: @svirilinmax
+- **Лицензия**: MIT
+- **Разработчик**: Максим Свирилин
+- **Репозиторий**: [github.com/svirilinmax/widget-automation-playwright-python](https://github.com/svirilinmax/widget-automation-playwright-python)
+- **Вопросы**: mak.svirilin@gmail.com
+- **Telegram**: @svirilinmax
 
 ---
 
