@@ -66,18 +66,17 @@
 
 ### Клонирование репозитория
 ```bash
-    git clone https://github.com/svirilinmax/widget-automation-playwright-python.gitl
+    git clone https://github.com/svirilinmax/widget-automation-playwright-python.git
     cd widget-automation-playwright-python
 ```
 
 ### Создание виртуального окружения
 ```bash
-
-# Windows
+    # Windows
     python -m venv venv
     venv\Scripts\activate
 
-# Linux/Mac
+    # Linux/Mac
     python -m venv venv
     source venv/bin/activate
 ```
@@ -124,18 +123,19 @@
 ```
 widget-automation-playwright-python/
 ├── .gitignore                    # Игнорируемые файлы
+├── .pre-commit-config.yaml       # Настройки pre-commit хуков
+├── pyproject.toml                 # Основной файл конфигурации проекта
 ├── README.md                      # Документация
 ├── requirements.txt               # Зависимости проекта
-├── pytest.ini                     # Конфигурация pytest
 ├── conftest.py                     # Фикстуры Playwright
 ├── pages/                          # Page Object паттерн
 │   ├── __init__.py
 │   └── constructor_page.py        # Page Object для страницы конструктора
 ├── tests/                          # Тестовые сценарии
 │   ├── __init__.py
-│   ├── test_ui_constructor.py      # UI тесты
-│   ├── test_negative_scenarios.py  # Негативные сценарии
-│   ├── test_error_handling.py      # Тесты обработки ошибок
+│   ├── test_ui_constructor.py      # UI тесты (11 тестов)
+│   ├── test_negative_scenarios.py  # Негативные сценарии (2 теста)
+│   ├── test_error_handling.py      # Тесты обработки ошибок (6 тестов)
 └── utils/                          # Вспомогательные модули
     └── data_provider.py            # Тестовые данные
 ```
@@ -143,6 +143,14 @@ widget-automation-playwright-python/
 ---
 
 ## Покрытие тестов
+
+### Всего тестов: **21**
+
+| Категория | Количество тестов |
+|-----------|-------------------|
+| UI тесты (`test_ui_constructor.py`) | 11 |
+| Тесты обработки ошибок (`test_error_handling.py`) | 6 |
+| Негативные сценарии (`test_negative_scenarios.py`) | 2 |
 
 ### UI тесты (`test_ui_constructor.py`)
 
@@ -153,13 +161,12 @@ widget-automation-playwright-python/
 | `test_dimensions_input_validation` | ✅ | Валидация поля ширины (отрицательные, текст, спецсимволы, границы) |
 | `test_edge_dimensions_values` | ✅ | Проверка экстремальных значений размеров (-100, 0, 9999) |
 | `test_clear_buttons_work` | ✅ | Проверка кнопок очистки для тематики и стран |
-
-### Негативные сценарии (`test_negative_scenarios.py`)
-
-| Тест | Статус | Описание |
-|------|--------|----------|
-| `test_empty_theme_selection` | ✅ | Генерация без выбора темы (UI генерирует код) |
-| `test_empty_countries_selection` | ✅ | Генерация без выбора стран (UI генерирует код) |
+| `test_clear_theme_when_button_not_visible` | ✅ | Очистка темы когда кнопка не видна |
+| `test_clear_countries_when_button_not_visible` | ✅ | Очистка стран когда кнопка не видна |
+| `test_has_error_messages_detection` | ✅ | Проверка обнаружения сообщений об ошибках |
+| `test_is_page_loaded_without_button_check` | ✅ | Проверка загрузки без проверки кнопки |
+| `test_is_page_loaded_when_form_missing` | ✅ | Проверка когда форма отсутствует |
+| `test_get_width_value_empty_field` | ✅ | Получение значения из пустого поля |
 
 ### Тесты обработки ошибок (`test_error_handling.py`)
 
@@ -170,6 +177,14 @@ widget-automation-playwright-python/
 | `test_navigate_with_network_error` | ✅ | Проверка обработки сетевой ошибки |
 | `test_navigate_with_mixed_content_warning` | ✅ | Проверка mixed content warnings |
 | `test_page_loads_with_different_wait_conditions` | ✅ | Проверка разных wait_until параметров |
+| `test_navigate_fallback_on_error` | ✅ | Проверка fallback механизма при ошибке |
+
+### Негативные сценарии (`test_negative_scenarios.py`)
+
+| Тест | Статус | Описание |
+|------|--------|----------|
+| `test_empty_theme_selection` | ✅ | Генерация без выбора темы (UI генерирует код) |
+| `test_empty_countries_selection` | ✅ | Генерация без выбора стран (UI генерирует код) |
 
 ---
 
@@ -241,7 +256,6 @@ widget-automation-playwright-python/
 |--------|----------|--------|
 | `smoke` | Быстрые проверки основного функционала | `pytest -m smoke` |
 | `regression` | Полный регресс | `pytest -m regression` |
-| `exploratory` | Исследовательские тесты | `pytest -m exploratory` |
 
 ### Переменные окружения
 ```bash
@@ -250,13 +264,13 @@ widget-automation-playwright-python/
     set PLAYWRIGHT_HEADLESS=false     # Windows
 ```
 
-### Конфигурация в pytest.ini
-```ini
-[pytest]
+### Конфигурация в pyproject.toml
+```toml
+[tool.pytest.ini_options]
 log_cli = true
-log_cli_level = INFO
-log_cli_format = %(asctime)s [%(levelname)s] %(message)s
-addopts = -v --strict-markers --tb=short --maxfail=1
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+addopts = "-v --strict-markers --tb=short --maxfail=1"
 ```
 
 ---
@@ -321,6 +335,15 @@ def test_clear_buttons_work(self, page):
     pytest --headed --slowmo=1000
 ```
 
+### Качество кода (pre-commit хуки)
+```bash
+    # Установка pre-commit хуков
+    pre-commit install
+
+    # Ручной запуск проверок
+    pre-commit run --all-files
+```
+
 ### Создание скриншотов
 При падении тестов автоматически создаются скриншоты в папке `test_screenshots`:
 ```
@@ -373,11 +396,11 @@ failure_test_clear_buttons_work_20240304_123457.png
 
 **Лицензия**: MIT
 **Разработчик**: Максим Свирилин
-**Репозиторий**: [github.com/svirilinmax](https://github.com/svirilinmax)
+**Репозиторий**: [github.com/svirilinmax/widget-automation-playwright-python](https://github.com/svirilinmax/widget-automation-playwright-python)
 **Вопросы**: mak.svirilin@gmail.com
 **Telegram**: @svirilinmax
 
 ---
 
-*Events Widget Constructor Tests —  набор автоматизированных тестов, демонстрирующий практики тестирования веб-интерфейсов с использованием Python, Pytest и Playwright.*
+*Events Widget Constructor Tests — набор автоматизированных тестов, демонстрирующий практики тестирования веб-интерфейсов с использованием Python, Pytest и Playwright.*
 ```
