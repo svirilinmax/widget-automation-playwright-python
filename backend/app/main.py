@@ -17,7 +17,6 @@ print("Database tables created successfully!")
 
 app = FastAPI(title="Widget Test Runner", version="1.0.0")
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,7 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Роутеры
 app.include_router(tests.router)
 app.include_router(results.router)
 

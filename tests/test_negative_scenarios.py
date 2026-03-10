@@ -15,7 +15,6 @@ class TestNegativeScenarios:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # только страны
         constructor.select_all_countries()
         constructor.set_dimensions("460", "1000")
         constructor.set_color_theme(0)
@@ -32,7 +31,6 @@ class TestNegativeScenarios:
         constructor.navigate()
 
         constructor.select_theme("Affiliate")
-        # Не выбираем страны
         constructor.set_dimensions("460", "1000")
         constructor.set_color_theme(0)
         constructor.generate_preview()
