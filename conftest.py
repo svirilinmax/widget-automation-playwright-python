@@ -1,30 +1,34 @@
+import logging
 import os
 from datetime import datetime
 
 import pytest
 from playwright.sync_api import sync_playwright
 
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope="function")
 def page():
     """Фикстура для создания страницы перед каждым тестом"""
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
         context = browser.new_context(viewport={"width": 1280, "height": 720}, locale="ru-RU")
         page = context.new_page()
 
         # Добавляем обработчик ошибок с подробной информацией
-        page.on("pageerror", lambda err: print(f"Page error: {err}"))
-        page.on("console", lambda msg: print(f"Console: {msg.text}"))
+        page.on("pageerror", lambda err: logger.error(f"Page error: {err}"))
+        page.on("console", lambda msg: logger.debug(f"Console: {msg.text}"))
 
         yield page
 
         # Делаем скриншот при падении теста
         if hasattr(page, "_test_failed") and page._test_failed:
             # Создаем папку для скриншотов если её нет
-            screenshots_dir = "test_screenshots"
+            screenshots_dir = "backend/test_screenshots"
             if not os.path.exists(screenshots_dir):
                 os.makedirs(screenshots_dir)
+                logger.info(f"Created screenshots directory: {screenshots_dir}")
 
             # Генерируем имя файла с датой и временем
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -33,7 +37,7 @@ def page():
 
             # Сохраняем скриншот
             page.screenshot(path=screenshot_path)
-            print(f" Screenshot saved: {screenshot_path}")
+            logger.info(f"Screenshot saved: {screenshot_path}")
 
         context.close()
         browser.close()
@@ -42,6 +46,7 @@ def page():
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args):
     """Настройки контекста для всех тестов"""
+    logger.debug("Setting up browser context arguments")
     return {
         **browser_context_args,
         "viewport": {
@@ -58,6 +63,7 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
     if report.when == "call" and report.failed:
+        logger.debug(f"Test failed: {item.name}")
         if "page" in item.funcargs:
             page = item.funcargs["page"]
             page._test_failed = True

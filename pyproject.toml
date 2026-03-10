@@ -68,6 +68,10 @@ markers = [
     "exploratory: Исследовательские тесты (не для регулярного запуска)",
     "xfail: Ожидаемо падающие тесты (известные проблемы)"
 ]
+filterwarnings = [
+    "ignore::DeprecationWarning:greenlet.*:",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
 
 [tool.coverage.run]
 source = ["pages", "tests"]
