@@ -245,3 +245,37 @@ test_screenshots/
 # Отчеты
 report.html
 report.xml
+
+# Database
+*.db
+*.db-journal
+data/
+!data/.gitkeep
+
+# Test reports
+test_reports/
+!test_reports/.gitkeep
+!test_screenshots/.gitkeep
+
+# Byte-compiled
+*.py[cod]
+
+# Database - только в backend/data
+backend/data/
+!backend/data/.gitkeep
+backend/test_reports/
+!backend/test_reports/.gitkeep
+backend/test_screenshots/
+!backend/test_screenshots/.gitkeep
+
+# Удаляем дублирующиеся папки в корне
+/data/
+/test_reports/
+/test_screenshots/
+/static/
+
+# Temporary test files
+test.db
+test_*.db
+temp_*.json
+report_*.json
