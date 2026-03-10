@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test Runner</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="container">
+                <h1>Widget Test Runner</h1>
+                <p class="subtitle">Управление запуском автотестов для конструктора календаря</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <!-- Статус -->
+                <div class="status-bar" id="statusBar" style="display: none;">
+                    <div class="status-content">
+                        <span class="status-icon">⚡</span>
+                        <span class="status-text" id="statusText">Загрузка...</span>
+                    </div>
+                </div>
+
+                <!-- Карточки с метриками -->
+                <div class="metrics-grid" id="metricsGrid"></div>
+
+                <!-- Управление тестами -->
+                <div class="control-panel">
+                    <h2>Управление тестами</h2>
+                    <div class="controls">
+                        <button class="btn btn-primary" id="runAllTests">
+                            Запустить все тесты
+                        </button>
+                        <button class="btn btn-secondary" id="refreshTests">
+                            Обновить список
+                        </button>
+                        <select class="test-select" id="testSelector" multiple>
+                            <option value="">Выберите тесты...</option>
+                        </select>
+                        <div class="advanced-options">
+                            <select id="markerSelect">
+                                <option value="">Все тесты</option>
+                                <option value="smoke">Smoke</option>
+                                <option value="regression">Regression</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" id="runSelectedTests">
+                            Запустить выбранные
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Активный запуск -->
+                <div class="active-run" id="activeRun" style="display: none;">
+                    <div class="run-header">
+                        <h2>Текущий запуск</h2>
+                        <span class="run-status-badge" id="runStatusBadge">pending</span>
+                    </div>
+                    <div class="run-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="run-stats" id="runStats">
+                            <!-- Добавлен id -->
+                            <span>Выполнено: <span id="completedTests">0</span>/<span id="totalTests">0</span></span>
+                            <span class="run-progress-text" id="progressPercent">0%</span>
+                        </div>
+                    </div>
+                    <div class="run-info-message" id="runInfoMessage">
+                        Запуск тестов...
+                    </div>
+                </div>
+
+                <!-- История запусков -->
+                <div class="history-section">
+                    <h2>История запусков</h2>
+                    <div class="history-filters">
+                        <input type="text" placeholder="Поиск по ID..." id="historySearch">
+                        <select id="historyFilter">
+                            <option value="all">Все статусы</option>
+                            <option value="completed">Успешно</option>
+                            <option value="failed">С ошибками</option>
+                            <option value="pending">В ожидании</option>
+                        </select>
+                    </div>
+                    <div class="history-list" id="historyList">
+                        <div class="loading">Загрузка истории...</div>
+                    </div>
+                </div>
+
+                <!-- Детали запуска - новая структура -->
+                <div class="run-details" id="runDetails" style="display: none;">
+                    <div class="run-details-header">
+                        <h2>Детали запуска</h2>
+                        <button class="btn-close" id="closeDetails">✕</button>
+                    </div>
+                    <div class="run-details-content" id="detailsContent"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно для просмотра ошибки -->
+    <div class="modal" id="errorModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Детали ошибки</h3>
+                <button class="btn-close" id="closeModal">✕</button>
+            </div>
+            <div class="modal-body" id="errorDetails"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+    <!-- Кнопка прокрутки наверх -->
+    <button class="scroll-top hidden" id="scrollTopBtn" title="Наверх">↑</button>
+</body>
+</html>

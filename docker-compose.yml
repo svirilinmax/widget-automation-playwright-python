@@ -1,0 +1,23 @@
+services:
+  test-runner:
+    build: .
+    container_name: widget-test-runner
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/backend/data
+      - ./backend/test_reports:/app/backend/test_reports
+      - ./backend/test_screenshots:/app/backend/test_screenshots
+      - ./backend/static:/app/backend/static
+      - ./backend/app:/app/backend/app
+      - ./tests:/app/tests
+    environment:
+      - DATABASE_URL=sqlite:///./backend/data/test_runs.db
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
