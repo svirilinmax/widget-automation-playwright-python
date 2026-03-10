@@ -221,7 +221,6 @@ widget-automation-playwright-python/
 │   │   ├── index.html                 # Главная страница
 │   │   ├── styles.css                  # Стили
 │   │   ├── script.js                   # JavaScript
-│   │   └── components/                 # JS компоненты
 │   ├── data/                          # База данных SQLite
 │   └── test_reports/                   # JSON отчеты о тестах
 └── utils/                          # Вспомогательные модули
