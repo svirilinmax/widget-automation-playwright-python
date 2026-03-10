@@ -22,10 +22,12 @@ const elements = {
     runSelectedTests: document.getElementById('runSelectedTests'),
     markerSelect: document.getElementById('markerSelect'),
     activeRun: document.getElementById('activeRun'),
+    runStatusBadge: document.getElementById('runStatusBadge'),
     progressFill: document.getElementById('progressFill'),
+    progressPercent: document.getElementById('progressPercent'),
     completedTests: document.getElementById('completedTests'),
     totalTests: document.getElementById('totalTests'),
-    runStats: document.getElementById('runStats'),
+    runInfoMessage: document.getElementById('runInfoMessage'),
     historyList: document.getElementById('historyList'),
     historySearch: document.getElementById('historySearch'),
     historyFilter: document.getElementById('historyFilter'),
@@ -69,6 +71,7 @@ function setupEventListeners() {
             elements.runDetails.style.display = 'none';
         }
     });
+
     // Кнопка наверх
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
@@ -141,10 +144,10 @@ function renderHistory() {
                 <span class="history-date">${new Date(run.started_at).toLocaleString()}</span>
                 <span class="history-status status-badge ${run.status}">${run.status}</span>
                 <span class="history-stats">
-                     ${run.passed_tests} |  ${run.failed_tests} | ${run.success_rate}%
+                    Пройдено: ${run.passed_tests} | Упало: ${run.failed_tests} | Успешность: ${run.success_rate}%
                 </span>
             </div>
-            <span class="history-duration">️ ${formatDuration(run.duration)}</span>
+            <span class="history-duration">⏱️ ${formatDuration(run.duration)}</span>
         `;
 
         item.addEventListener('click', () => showRunDetails(run.id));
@@ -221,7 +224,7 @@ async function runTests(options = {}) {
             body: JSON.stringify({
                 test_names: options.testNames || null,
                 markers: options.markers || null,
-                parallel: false, // всегда false
+                parallel: false,
                 workers: 1
             })
         });
@@ -230,8 +233,7 @@ async function runTests(options = {}) {
         state.currentRunId = data.run_id;
 
         // Показываем активный запуск
-        elements.activeRun.style.display = 'block';
-        startPollingRunStatus(data.run_id);
+        showActiveRun('pending', 'Запуск тестов...');
 
     } catch (error) {
         console.error('Error running tests:', error);
@@ -254,6 +256,17 @@ function runSelectedTests() {
     });
 }
 
+// Показать активный запуск
+function showActiveRun(status, message) {
+    elements.activeRun.style.display = 'block';
+    elements.runStatusBadge.textContent = status;
+    elements.runStatusBadge.className = `run-status-badge ${status}`;
+    elements.runInfoMessage.textContent = message;
+
+    // Начинаем поллинг
+    startPollingRunStatus(state.currentRunId);
+}
+
 // Поллинг статуса запуска
 function startPollingRunStatus(runId) {
     if (state.updateInterval) {
@@ -271,17 +284,23 @@ function startPollingRunStatus(runId) {
                 clearInterval(state.updateInterval);
                 state.updateInterval = null;
 
-                // Скрываем активный запуск через 5 секунд
+                // Обновляем статус
+                elements.runStatusBadge.textContent = data.status;
+                elements.runStatusBadge.className = `run-status-badge ${data.status}`;
+                elements.runInfoMessage.textContent =
+                    data.status === 'completed' ? '✅ Тесты успешно завершены' : '❌ Тесты завершены с ошибками';
+
+                // Скрываем активный запуск через 10 секунд
                 setTimeout(() => {
                     elements.activeRun.style.display = 'none';
-                }, 5000);
+                }, 10000);
 
                 // Обновляем историю
                 loadHistory();
                 updateMetrics();
 
                 updateStatus(
-                    data.status === 'completed' ? ' Тесты успешно завершены' : ' Тесты завершены с ошибками',
+                    data.status === 'completed' ? 'Тесты успешно завершены' : 'Тесты завершены с ошибками',
                     data.status === 'completed' ? 'success' : 'error'
                 );
             }
@@ -295,18 +314,24 @@ function startPollingRunStatus(runId) {
 function updateRunProgress(data) {
     const completed = data.results ? data.results.filter(r => r.status !== 'pending').length : 0;
     const total = data.total || 0;
-    const percent = total > 0 ? (completed / total) * 100 : 0;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     elements.progressFill.style.width = `${percent}%`;
+    elements.progressPercent.textContent = `${percent}%`;
     elements.completedTests.textContent = completed;
     elements.totalTests.textContent = total;
 
-    // Обновляем статус
-    let statusText = `Статус: ${data.status}`;
-    if (data.passed !== undefined) {
-        statusText += ` |  ${data.passed} |  ${data.failed}`;
+    // Обновляем сообщение о статусе
+    if (elements.runInfoMessage) {
+        let statusMessage = `Статус: ${data.status}`;
+        if (data.passed !== undefined || data.failed !== undefined) {
+            statusMessage += ` | ✅ Пройдено: ${data.passed || 0} | ❌ Упало: ${data.failed || 0}`;
+        }
+        if (percent > 0) {
+            statusMessage += ` | ${percent}% завершено`;
+        }
+        elements.runInfoMessage.textContent = statusMessage;
     }
-    elements.runStats.textContent = statusText;
 }
 
 // Показать детали запуска
@@ -316,11 +341,30 @@ async function showRunDetails(runId) {
         const data = await response.json();
 
         renderRunDetails(data);
-        elements.runDetails.style.display = 'block';
-        // Прокручиваем детали в начало
-        elements.runDetails.scrollTop = 0;
+        elements.runDetails.style.display = 'flex';
+        // Прокручиваем контент в начало
+        const contentDiv = document.querySelector('.run-details-content');
+        if (contentDiv) {
+            contentDiv.scrollTop = 0;
+        }
     } catch (error) {
         console.error('Error loading run details:', error);
+    }
+}
+
+// Форматирование длительности теста из миллисекунд в человекочитаемый формат
+function formatTestDuration(ms) {
+    if (!ms || ms === 0) return '< 1ms';
+
+    if (ms < 1000) {
+        return `${ms}ms`;
+    } else if (ms < 60000) {
+        const seconds = (ms / 1000).toFixed(2);
+        return `${seconds}s`;
+    } else {
+        const minutes = Math.floor(ms / 60000);
+        const seconds = ((ms % 60000) / 1000).toFixed(0);
+        return `${minutes}min ${seconds}s`;
     }
 }
 
@@ -328,16 +372,19 @@ async function showRunDetails(runId) {
 function renderRunDetails(data) {
     const results = data.results || [];
 
+    // Вычисляем общую длительность в секундах
+    const totalDuration = data.duration || 0;
+
     const html = `
         <div class="run-info">
-            <p><strong>ID:</strong> ${data.id}</p>
+            <p><strong>ID запуска:</strong> ${data.id}</p>
             <p><strong>Статус:</strong> <span class="status-badge ${data.status}">${data.status}</span></p>
-            <p><strong>Начало:</strong> ${new Date(data.started_at).toLocaleString()}</p>
+            <p><strong>Начало:</strong> ${data.started_at ? new Date(data.started_at).toLocaleString() : '-'}</p>
             <p><strong>Окончание:</strong> ${data.completed_at ? new Date(data.completed_at).toLocaleString() : '-'}</p>
-            <p><strong>Длительность:</strong> ${formatDuration(data.duration)}</p>
-            <p><strong>Всего тестов:</strong> ${data.total}</p>
-            <p><strong>Пройдено:</strong>  ${data.passed}</p>
-            <p><strong>Упало:</strong>  ${data.failed}</p>
+            <p><strong>Длительность:</strong> ${formatDuration(totalDuration)}</p>
+            <p><strong>Всего тестов:</strong> ${data.total || 0}</p>
+            <p><strong>Пройдено:</strong> ${data.passed || 0}</p>
+            <p><strong>Упало:</strong> ${data.failed || 0}</p>
         </div>
 
         <h3>Результаты тестов</h3>
@@ -354,12 +401,12 @@ function renderRunDetails(data) {
             <tbody>
                 ${results.map(test => `
                     <tr>
-                        <td>${test.name}</td>
-                        <td class="status-${test.status}">${test.status}</td>
-                        <td>${test.duration}ms</td>
+                        <td>${test.name || 'Неизвестно'}</td>
+                        <td class="status-${test.status}">${test.status || 'unknown'}</td>
+                        <td>${formatTestDuration(test.duration)}</td>
                         <td class="test-error">
                             ${test.error ? `
-                                <a href="#" class="view-error" onclick="showError('${escapeHtml(test.error)}')">
+                                <a href="#" class="view-error" onclick="showError('${escapeHtml(test.error)}'); return false;">
                                     Показать ошибку
                                 </a>
                             ` : '-'}
@@ -407,7 +454,7 @@ function updateStatus(message, type = 'info') {
     }, 5000);
 }
 
-// Форматирование длительности
+// Форматирование длительности (для общего времени запуска)
 function formatDuration(seconds) {
     if (!seconds) return '0с';
     if (seconds < 60) return `${seconds}с`;
@@ -417,6 +464,7 @@ function formatDuration(seconds) {
 
 // Экранирование HTML
 function escapeHtml(unsafe) {
+    if (!unsafe) return '';
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -435,9 +483,9 @@ async function loadRecentResults() {
             <div class="recent-results">
                 <h3>Результаты за 24 часа</h3>
                 <div class="result-stats">
-                    <span class="stat passed"> ${data.stats.passed}</span>
-                    <span class="stat failed"> ${data.stats.failed}</span>
-                    <span class="stat total"> ${data.stats.total}</span>
+                    <span class="stat passed">✅ Пройдено: ${data.stats.passed}</span>
+                    <span class="stat failed">❌ Упало: ${data.stats.failed}</span>
+                    <span class="stat total">📊 Всего: ${data.stats.total}</span>
                 </div>
                 <div class="result-list">
                     ${data.results.slice(0, 5).map(r => `

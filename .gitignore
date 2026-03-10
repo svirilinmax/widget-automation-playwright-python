@@ -276,4 +276,6 @@ backend/test_screenshots/
 
 # Temporary test files
 test.db
+test_*.db
 temp_*.json
+report_*.json

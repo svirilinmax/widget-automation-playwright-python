@@ -136,7 +136,31 @@ class PytestRunner:
                 for test in report_data.get("tests", []):
                     test_nodeid = test.get("nodeid", "")
                     outcome = test.get("outcome", "unknown")
-                    test_duration = int(test.get("duration", 0) * 1000)
+
+                    # Правильное извлечение длительности
+                    # В JSON отчете длительность может быть в разных местах
+                    test_duration = 0
+
+                    # Пробуем получить длительность из call секции
+                    call_data = test.get("call", {})
+                    if call_data and "duration" in call_data:
+                        test_duration = int(float(call_data["duration"]) * 1000)
+                    elif "duration" in test:
+                        test_duration = int(float(test["duration"]) * 1000)
+
+                    # Если длительность все еще 0, но тест прошел - попробуем вычислить из setup/call/teardown
+                    if test_duration == 0:
+                        setup_duration = float(test.get("setup", {}).get("duration", 0))
+                        call_duration = float(test.get("call", {}).get("duration", 0))
+                        teardown_duration = float(test.get("teardown", {}).get("duration", 0))
+                        total_test_duration = setup_duration + call_duration + teardown_duration
+                        if total_test_duration > 0:
+                            test_duration = int(total_test_duration * 1000)
+                            logger.debug(
+                                f"Calculated duration for "
+                                f"{test_nodeid}: {test_duration}ms (setup:{setup_duration}, "
+                                f"call:{call_duration}, teardown:{teardown_duration})"
+                            )
 
                     # Ищем скриншот если тест упал
                     screenshot_path = None
@@ -149,6 +173,7 @@ class PytestRunner:
                                 logger.info(f"Found screenshot for {test_name}: {screenshot_path}")
                                 break
 
+                    # Создаем результат
                     result = schemas.TestResultCreate(
                         test_run_id=run_id,
                         test_name=test_nodeid,
@@ -159,7 +184,7 @@ class PytestRunner:
                         screenshot_path=screenshot_path,
                     )
                     crud.create_test_result(db, result)
-                    logger.debug(f"Saved result for {test_nodeid}: {outcome}")
+                    logger.debug(f"Saved result for {test_nodeid}: {outcome}, duration: {test_duration}ms")
             else:
                 logger.error(f"Report file not found: {report_path}")
 

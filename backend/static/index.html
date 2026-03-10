@@ -33,7 +33,7 @@
                     <h2>Управление тестами</h2>
                     <div class="controls">
                         <button class="btn btn-primary" id="runAllTests">
-                            ▶ Запустить все тесты
+                            Запустить все тесты
                         </button>
                         <button class="btn btn-secondary" id="refreshTests">
                             Обновить список
@@ -56,14 +56,22 @@
 
                 <!-- Активный запуск -->
                 <div class="active-run" id="activeRun" style="display: none;">
-                    <h2>Текущий запуск</h2>
+                    <div class="run-header">
+                        <h2>Текущий запуск</h2>
+                        <span class="run-status-badge" id="runStatusBadge">pending</span>
+                    </div>
                     <div class="run-progress">
                         <div class="progress-bar">
                             <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                         </div>
                         <div class="run-stats" id="runStats">
-                            Выполнено: <span id="completedTests">0</span>/<span id="totalTests">0</span>
+                            <!-- Добавлен id -->
+                            <span>Выполнено: <span id="completedTests">0</span>/<span id="totalTests">0</span></span>
+                            <span class="run-progress-text" id="progressPercent">0%</span>
                         </div>
+                    </div>
+                    <div class="run-info-message" id="runInfoMessage">
+                        Запуск тестов...
                     </div>
                 </div>
 
@@ -84,11 +92,13 @@
                     </div>
                 </div>
 
-                <!-- Детали запуска -->
+                <!-- Детали запуска - новая структура -->
                 <div class="run-details" id="runDetails" style="display: none;">
-                    <h2>Детали запуска</h2>
-                    <button class="btn-close" id="closeDetails">✕</button>
-                    <div id="detailsContent"></div>
+                    <div class="run-details-header">
+                        <h2>Детали запуска</h2>
+                        <button class="btn-close" id="closeDetails">✕</button>
+                    </div>
+                    <div class="run-details-content" id="detailsContent"></div>
                 </div>
             </div>
         </main>
