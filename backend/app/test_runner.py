@@ -35,12 +35,10 @@ class PytestRunner:
         """
         Запустить тесты и сохранить результаты
         """
-        # Создаем запись о запуске
         test_run = crud.create_test_run(self.db, schemas.TestRunCreate(status="running"))
         self.current_run = test_run
         logger.info(f"Created test run with ID: {test_run.id}")
 
-        # Запускаем тесты в отдельном потоке
         thread = threading.Thread(
             target=self._run_tests_thread, args=(test_run.id, test_names, markers, parallel, workers)
         )
@@ -58,7 +56,6 @@ class PytestRunner:
             start_time = time.time()
             logger.info(f"Starting test run {run_id}")
 
-            # Определяем пути
             current_file = Path(__file__).resolve()
             project_root = current_file.parent.parent.parent
             backend_dir = current_file.parent.parent
@@ -67,7 +64,6 @@ class PytestRunner:
             reports_dir.mkdir(exist_ok=True)
             logger.debug(f"Reports directory: {reports_dir}")
 
-            # Формируем команду pytest
             cmd = [
                 sys.executable,
                 "-m",
@@ -78,7 +74,6 @@ class PytestRunner:
                 f"--json-report-file={reports_dir / f'report_{run_id}.json'}",
             ]
 
-            # Добавляем параллельный запуск если требуется
             if parallel:
                 try:
                     cmd.extend(["-n", str(workers)])
@@ -87,7 +82,6 @@ class PytestRunner:
                     logger.warning("pytest-xdist not installed, running sequentially")
                     parallel = False
 
-            # Если выбраны конкретные тесты
             if test_names:
                 cmd.extend(test_names)
                 logger.info(f"Running specific tests: {test_names}")
@@ -98,7 +92,6 @@ class PytestRunner:
 
             logger.info(f"Running command: {' '.join(cmd)}")
 
-            # Запускаем тесты
             process = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -116,7 +109,6 @@ class PytestRunner:
 
             duration = int(time.time() - start_time)
 
-            # Парсим JSON отчет
             report_path = reports_dir / f"report_{run_id}.json"
             passed = 0
             failed = 0
@@ -132,23 +124,18 @@ class PytestRunner:
 
                 logger.info(f"Results: total={total}, passed={passed}, failed={failed}")
 
-                # Сохраняем результаты каждого теста
                 for test in report_data.get("tests", []):
                     test_nodeid = test.get("nodeid", "")
                     outcome = test.get("outcome", "unknown")
 
-                    # Правильное извлечение длительности
-                    # В JSON отчете длительность может быть в разных местах
                     test_duration = 0
 
-                    # Пробуем получить длительность из call секции
                     call_data = test.get("call", {})
                     if call_data and "duration" in call_data:
                         test_duration = int(float(call_data["duration"]) * 1000)
                     elif "duration" in test:
                         test_duration = int(float(test["duration"]) * 1000)
 
-                    # Если длительность все еще 0, но тест прошел - попробуем вычислить из setup/call/teardown
                     if test_duration == 0:
                         setup_duration = float(test.get("setup", {}).get("duration", 0))
                         call_duration = float(test.get("call", {}).get("duration", 0))
@@ -162,7 +149,6 @@ class PytestRunner:
                                 f"call:{call_duration}, teardown:{teardown_duration})"
                             )
 
-                    # Ищем скриншот если тест упал
                     screenshot_path = None
                     if outcome == "failed":
                         screenshots_dir = backend_dir / "test_screenshots"
@@ -264,7 +250,6 @@ class PytestRunner:
         logger.info("Discovering tests")
         result = []
         try:
-            # Определяем корень проекта
             current_file = Path(__file__).resolve()
             project_root = current_file.parent.parent.parent
 
@@ -272,14 +257,12 @@ class PytestRunner:
             logger.debug(f"Tests directory: {project_root / 'tests'}")
             logger.debug(f"Tests exist: {(project_root / 'tests').exists()}")
 
-            # Временный файл для сохранения структуры тестов
             import json
             import tempfile
 
             with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmp:
                 tmp_file = tmp.name
 
-            # Запускаем pytest для сбора тестов
             cmd = [
                 sys.executable,
                 "-m",
@@ -303,12 +286,10 @@ class PytestRunner:
 
             logger.debug(f"Pytest return code: {output.returncode}")
 
-            # Читаем JSON отчет
             if os.path.exists(tmp_file):
                 with open(tmp_file, "r", encoding="utf-8") as f:
                     report_data = json.load(f)
 
-                # Извлекаем тесты из JSON
                 if "collectors" in report_data:
                     for collector in report_data["collectors"]:
                         nodeid = collector.get("nodeid", "")
@@ -330,7 +311,6 @@ class PytestRunner:
                                         result.append(test_info)
                                         logger.debug(f"Found test: {test_info['name']}")
 
-                # Удаляем временный файл
                 try:
                     os.unlink(tmp_file)
                 except Exception as e:

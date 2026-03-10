@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 
 
-# TestRun CRUD
 def create_test_run(db: Session, test_run: schemas.TestRunCreate) -> models.TestRun:
     db_test_run = models.TestRun(**test_run.model_dump())
     db.add(db_test_run)
@@ -44,7 +43,6 @@ def delete_test_run(db: Session, test_run_id: int) -> bool:
     return False
 
 
-# TestResult CRUD
 def create_test_result(db: Session, result: schemas.TestResultCreate) -> models.TestResult:
     db_result = models.TestResult(**result.model_dump())
     db.add(db_result)

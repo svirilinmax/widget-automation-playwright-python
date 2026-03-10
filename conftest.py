@@ -16,26 +16,21 @@ def page():
         context = browser.new_context(viewport={"width": 1280, "height": 720}, locale="ru-RU")
         page = context.new_page()
 
-        # Добавляем обработчик ошибок с подробной информацией
         page.on("pageerror", lambda err: logger.error(f"Page error: {err}"))
         page.on("console", lambda msg: logger.debug(f"Console: {msg.text}"))
 
         yield page
 
-        # Делаем скриншот при падении теста
         if hasattr(page, "_test_failed") and page._test_failed:
-            # Создаем папку для скриншотов если её нет
             screenshots_dir = "backend/test_screenshots"
             if not os.path.exists(screenshots_dir):
                 os.makedirs(screenshots_dir)
                 logger.info(f"Created screenshots directory: {screenshots_dir}")
 
-            # Генерируем имя файла с датой и временем
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             screenshot_name = f"failure_{page._test_name}_{timestamp}.png"
             screenshot_path = os.path.join(screenshots_dir, screenshot_name)
 
-            # Сохраняем скриншот
             page.screenshot(path=screenshot_path)
             logger.info(f"Screenshot saved: {screenshot_path}")
 

@@ -22,17 +22,14 @@ class TestResultsAPI:
         """
         Фикстура, автоматически выполняющаяся перед каждым тестом.
         """
-        # Создаем временный файл для тестовой БД
         self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
-        # Создаем тестовую БД
         SQLALCHEMY_DATABASE_URL = f"sqlite:///{self.db_path}"
         self.engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
         self.TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
-        # Создаем таблицы
         Base.metadata.create_all(bind=self.engine)
 
         def override_get_db():
@@ -49,7 +46,6 @@ class TestResultsAPI:
 
         yield
 
-        # Очистка после теста
         Base.metadata.drop_all(bind=self.engine)
         os.unlink(self.db_path)
         app.dependency_overrides.clear()
@@ -70,7 +66,6 @@ class TestResultsAPI:
         db.commit()
         db.refresh(test_run)
 
-        # Создаем тестовые результаты
         results = [
             models.TestResult(
                 test_run_id=test_run.id,
@@ -174,16 +169,13 @@ class TestResultsAPI:
 
     def test_delete_result(self):
         """Тест удаления результата"""
-        # Получаем ID для удаления
         response = self.client.get("/api/results/")
         result_id = response.json()["results"][0]["id"]
 
-        # Удаляем
         response = self.client.delete(f"/api/results/{result_id}")
         assert response.status_code == 200
         assert response.json()["status"] == "deleted"
 
-        # Проверяем, что удалилось
         response = self.client.get(f"/api/results/{result_id}")
         assert response.status_code == 404
 
