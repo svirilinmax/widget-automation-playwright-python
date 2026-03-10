@@ -26,14 +26,12 @@ class TestConstructor:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # Выполняем действия последовательно
         constructor.select_theme("Affiliate")
         constructor.select_all_countries()
         constructor.set_dimensions("460", "1000")
         constructor.set_color_theme(0)
         constructor.generate_preview()
 
-        # Проверяем результат
         assert constructor.is_code_generated(), "Код не был сгенерирован"
         logger.info("Happy path тест успешно пройден")
 
@@ -77,11 +75,9 @@ class TestConstructor:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # Выбираем значения
         constructor.select_theme("Affiliate")
         constructor.select_all_countries()
 
-        # Проверяем видимость кнопок
         theme_clear_visible = page.locator(constructor.theme_clear).is_visible()
         logger.info(f"Кнопка очистки темы видима: {theme_clear_visible}")
 
@@ -106,14 +102,12 @@ class TestConstructor:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # Выбираем тему
         constructor.select_theme("Affiliate")
 
-        # Временно делаем кнопку невидимой
         original_is_visible = page.locator(constructor.theme_clear).is_visible
         try:
             page.locator(constructor.theme_clear).is_visible = lambda: False
-            constructor.clear_theme()  # Должно отработать без ошибок
+            constructor.clear_theme()
         finally:
             page.locator(constructor.theme_clear).is_visible = original_is_visible
 
@@ -124,11 +118,10 @@ class TestConstructor:
 
         constructor.select_all_countries()
 
-        # Временно делаем кнопку невидимой
         original_is_visible = page.locator(constructor.countries_clear).is_visible
         try:
             page.locator(constructor.countries_clear).is_visible = lambda: False
-            constructor.clear_countries()  # Должно отработать без ошибок
+            constructor.clear_countries()
         finally:
             page.locator(constructor.countries_clear).is_visible = original_is_visible
 
@@ -137,10 +130,8 @@ class TestConstructor:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # Изначально ошибок нет
         assert not constructor.has_error_messages()
 
-        # Добавляем элемент с ошибкой через JavaScript
         page.evaluate("""
             const div = document.createElement('div');
             div.className = 'error-message';
@@ -149,7 +140,6 @@ class TestConstructor:
             document.body.appendChild(div);
         """)
 
-        # Должны обнаружить ошибку
         assert constructor.has_error_messages()
 
     def test_is_page_loaded_without_button_check(self, page):
@@ -163,7 +153,6 @@ class TestConstructor:
         """Проверка is_page_loaded когда формы нет"""
         constructor = ConstructorPage(page)
 
-        # Переходим на другую страницу
         page.goto("https://example.com")
 
         assert not constructor.is_page_loaded()
@@ -173,9 +162,7 @@ class TestConstructor:
         constructor = ConstructorPage(page)
         constructor.navigate()
 
-        # Очищаем поле
         page.locator(constructor.width_input).clear()
 
-        # Проверяем что метод не падает
         value = constructor.get_width_value()
         assert value is not None
